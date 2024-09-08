@@ -1,11 +1,9 @@
-/* Resetting margin and padding */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Overall body styling */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f0f2f5;
@@ -14,7 +12,6 @@ body {
     padding: 20px;
 }
 
-/* Container styling */
 .container {
     background: #ffffff;
     border-radius: 8px;
@@ -23,7 +20,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* Header styling */
 h1 {
     color: #4CAF50;
     font-size: 20px;
@@ -31,14 +27,12 @@ h1 {
     text-align: center;
 }
 
-/* Status message styling */
 .status-message {
     margin-bottom: 15px;
     font-weight: bold;
     text-align: center;
 }
 
-/* Input field styling */
 .input-field {
     width: 100%;
     padding: 10px;
@@ -48,7 +42,6 @@ h1 {
     margin-bottom: 10px;
 }
 
-/* Button styling */
 .button {
     background-color: #4CAF50;
     color: white;
@@ -66,7 +59,6 @@ h1 {
     background-color: #45a049;
 }
 
-/* Loading wheel styling */
 .loading {
     display: flex;
     justify-content: center;
@@ -76,7 +68,10 @@ h1 {
     color: #4CAF50;
 }
 
-/* Hidden class */
 .hidden {
     display: none;
+}
+
+.overleaf-form {
+    visibility: hidden;
 }

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tailor Resume</title>
     <link rel="stylesheet" href="popup.css">
 </head>
+
 <body>
     <div id="apiKeyContainer" class="container">
         <h1>Mistral API Key</h1>
@@ -18,7 +20,8 @@
     <div id="resumeContainer" class="container">
         <h1>Resume</h1>
         <label for="latexResume">Paste Resume in LaTeX format:</label>
-        <textarea id="latexResume" class="input-field hidden" placeholder="Paste your LaTeX resume here" rows="10" cols="50"></textarea>
+        <textarea id="latexResume" class="input-field hidden" placeholder="Paste your LaTeX resume here" rows="10"
+            cols="50"></textarea>
         <button id="editResume" class="button hidden">Edit Resume</button>
         <button id="saveResume" class="button hidden">Save Resume</button>
     </div>
@@ -28,9 +31,15 @@
 
     <button id="tailorResume" class="button hidden">Tailor Resume</button>
 
+    <form  action="https://www.overleaf.com/docs" method="post" target="_blank">
+        <input class="overleaf-form" id="latexCode" type="text" name="snip_uri"><br>
+        <input id="open-overleaf" class="button hidden" type="submit" value="Open in Overleaf">
+    </form>
+
     <div id="status" class="status-message"></div>
     <div id="loadingWheel" class="loading hidden">Loading...</div>
 
     <script src="popup.js" type="module"></script>
 </body>
+
 </html>

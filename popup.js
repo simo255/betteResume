@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     if (!apiKey && !resume) {
-        // Show the unified button if neither API key nor resume are set
+
         saveBothButton.classList.remove("hidden");
         apiKeyInput.classList.remove("hidden");
         resumeInput.classList.remove("hidden");
@@ -38,12 +38,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         tailorResumeButton.classList.remove("hidden");
 
         if (apiKey) {
-            // Show "Edit API Key" button
+
             editApiKeyButton.classList.remove("hidden");
         }
 
         if (resume) {
-            // Show "Edit Resume" button
+
             editResumeButton.classList.remove("hidden");
         }
     }
@@ -54,9 +54,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const resumeValue = resumeInput.value;
 
         if (apiKeyValue && resumeValue) {
-            // Save both to local storage
+
             await saveApiKey(apiKey);
-            await saveResume(); // Save the resume if provided
+            await saveResume();
             hideAllInputs();
             tailorResumeButton.classList.remove("hidden");
             editApiKeyButton.classList.remove("hidden");
@@ -111,57 +111,47 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function handleTailorResume() {
-    try {
-        const apiKey = await getApiKey();
-        if (!apiKey) {
-            document.getElementById('status').innerText = "Please enter your API Key first!";
-            return;
-        }
 
-        const resumeText = await getSavedResume();
-        if (!resumeText) {
-            document.getElementById('status').innerText = "Please paste your resume in LaTeX format!";
-            return;
-        }
-
-        showLoadingWheel(true);
-
-        if (!jobDescription) {
-            document.getElementById('status').innerText = "Failed to extract job description!";
-            showLoadingWheel(false);
-            return;
-        }
-
-        const tailoredResume = await sendApiCall(apiKey, resumeText, jobDescription);
-
-        if (tailoredResume) {
-            downloadFile('tailored_resume.tex', tailoredResume);
-            document.getElementById('status').innerText = "Your resume has been tailored successfully!";
-        } else {
-            document.getElementById('status').innerText = "Failed to tailor resume.";
-        }
-        showLoadingWheel(false);
-    } catch (e) {
-        console.error("Error in tailoring resume:", e);
-        document.getElementById('status').innerText = `Error: ${e.message}`;
-        showLoadingWheel(false);
+    const apiKey = await getApiKey();
+    if (!apiKey) {
+        document.getElementById('status').innerText = "Please enter your API Key first!";
+        return;
     }
+
+    const resumeText = await getSavedResume();
+    if (!resumeText) {
+        document.getElementById('status').innerText = "Please paste your resume in LaTeX format!";
+        return;
+    }
+
+    showLoadingWheel(true);
+
+    if (!jobDescription) {
+        document.getElementById('status').innerText = "Failed to extract job description!";
+        showLoadingWheel(false);
+        return;
+    }
+
+    const tailoredResume = await sendApiCall(apiKey, resumeText, jobDescription);
+
+    const latexCode = tailoredResume.match(/```latex([\s\S]*?)```/)[1].trim();
+
+    document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(latexCode);
+
+
+    if (latexCode) {
+        document.getElementById('status').innerText = "Your resume has been tailored successfully!";
+        document.getElementById('open-overleaf').classList.remove("hidden");
+    } else {
+        document.getElementById('status').innerText = "Failed to tailor resume.";
+    }
+    showLoadingWheel(false);
+
 }
 
 function showLoadingWheel(show) {
     const loadingWheel = document.getElementById('loadingWheel');
     loadingWheel.style.display = show ? 'block' : 'none';
-}
-
-
-function downloadFile(filename, content) {
-    const blob = new Blob([content], { type: 'application/x-tex' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
 }
 
 
@@ -183,7 +173,7 @@ async function getSavedResume() {
     });
 }
 
-// Request the HTML from the content script
+
 function getPageHTML() {
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -208,4 +198,3 @@ function getPageHTML() {
     });
 
 }
-
