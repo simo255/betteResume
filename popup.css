@@ -1,0 +1,90 @@
+/* Resetting margin and padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Overall body styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    width: 300px;
+    padding: 20px;
+}
+
+/* Container styling */
+.container {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+/* Header styling */
+h1 {
+    color: #4CAF50;
+    font-size: 24px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* Status message styling */
+.status-message {
+    margin-bottom: 15px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* API Key container styling */
+.api-key-container {
+    margin-bottom: 15px;
+}
+
+/* Resume container styling */
+.resume-container {
+    margin-bottom: 15px;
+}
+
+/* Input field styling */
+.input-field {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #4CAF50;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+/* Button styling */
+.button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.button:hover {
+    background-color: #45a049;
+}
+
+/* Loading wheel styling */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+/* Hidden class */
+.hidden {
+    display: none;
+}

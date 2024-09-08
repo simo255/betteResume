@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tailor Resume</title>
+</head>
+<body>
+    <div id="apiKeyContainer">
+        <label for="apiKey">API Key:</label>
+        <input type="text" id="apiKey" placeholder="Enter your API Key" />
+        <button id="saveKey">Save API Key</button>
+    </div>
+
+    <div id="resumeContainer" class="hidden">
+        <label for="resumeFile">copy  Resume in latex format</label>
+        <textarea id="latexResume" placeholder="Paste your LaTeX resume here" rows="10" cols="50"></textarea>
+        <button id="tailorResume">Tailor Resume</button>
+        <button id="editKey" class="hidden">Edit API Key</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="loadingWheel" style="display: none;">Loading...</div>
+
+    <script src="popup.js" type="module" ></script>
+    <script src="key_management/crypto.js"type="module" ></script>
+    <script src="key_management/api_key_management.js" type="module"></script>
+    <script src="api.js" type="module"></script>
+</body>
+</html>
