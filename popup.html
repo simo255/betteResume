@@ -4,27 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tailor Resume</title>
+    <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-    <div id="apiKeyContainer">
+    <div id="apiKeyContainer" class="container">
+        <h1>Mistral API Key</h1>
         <label for="apiKey">API Key:</label>
-        <input type="text" id="apiKey" placeholder="Enter your API Key" />
-        <button id="saveKey">Save API Key</button>
+        <input type="password" id="apiKey" class="input-field hidden" placeholder="Enter your API Key" />
+        <button id="editApiKey" class="button hidden">Edit API Key</button>
+        <button id="saveApiKey" class="button hidden">Save API Key</button>
     </div>
 
-    <div id="resumeContainer" class="hidden">
-        <label for="resumeFile">copy  Resume in latex format</label>
-        <textarea id="latexResume" placeholder="Paste your LaTeX resume here" rows="10" cols="50"></textarea>
-        <button id="tailorResume">Tailor Resume</button>
-        <button id="editKey" class="hidden">Edit API Key</button>
+    <div id="resumeContainer" class="container">
+        <h1>Resume</h1>
+        <label for="latexResume">Paste Resume in LaTeX format:</label>
+        <textarea id="latexResume" class="input-field hidden" placeholder="Paste your LaTeX resume here" rows="10" cols="50"></textarea>
+        <button id="editResume" class="button hidden">Edit Resume</button>
+        <button id="saveResume" class="button hidden">Save Resume</button>
     </div>
 
-    <div id="status"></div>
-    <div id="loadingWheel" style="display: none;">Loading...</div>
+    <!-- Unified Save Button -->
+    <button id="saveBoth" class="button hidden">Save API Key and Resume</button>
 
-    <script src="popup.js" type="module" ></script>
-    <script src="key_management/crypto.js"type="module" ></script>
-    <script src="key_management/api_key_management.js" type="module"></script>
-    <script src="api.js" type="module"></script>
+    <button id="tailorResume" class="button hidden">Tailor Resume</button>
+
+    <div id="status" class="status-message"></div>
+    <div id="loadingWheel" class="loading hidden">Loading...</div>
+
+    <script src="popup.js" type="module"></script>
 </body>
 </html>

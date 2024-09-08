@@ -1,8 +1,7 @@
 async function sendApiCall(apiKey, resumeText, jobDescription) {
-    console.log("Sending job description to Mistral AI:", jobDescription);
+
     const apiUrl = "https://api.mistral.ai/v1/chat/completions";
     const model = "open-mistral-nemo-2407";
-
     const systemContent = "This is the job description : " + jobDescription + "you have to generate a resume for a job application. You will generate a new resume for me using the appropriate keywords for a better match. Add the keywords inside the experience, education and projects sections of the resume. If the keywords are not present in the resume, and them in the appropriate sections. The resume should be in LaTeX format. ";
     const userPrompt = "This is my resume : " + resumeText + " . Make sure it's a one page format. If you find useless informations, that has nothing to do with the job application, dont add it to the resume. Don't add any comments."
     try {

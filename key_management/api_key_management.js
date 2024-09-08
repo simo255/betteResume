@@ -10,9 +10,6 @@ async function saveApiKey(apiKey) {
 
         chrome.storage.sync.set({ storageData }, () => {
             document.getElementById('status').innerText = "API Key saved securely!";
-            document.getElementById('apiKeyContainer').classList.add('hidden');
-            document.getElementById('tailorResume').classList.remove('hidden');
-            document.getElementById('editKey').classList.remove('hidden');
         });
     } catch (e) {
         console.error("Saving API Key failed:", e);

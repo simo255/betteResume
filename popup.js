@@ -1,41 +1,114 @@
 import { getApiKey, saveApiKey } from './key_management/api_key_management.js';
 import { sendApiCall } from './api.js';
 
+let jobDescription = ""
 
 document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        const apiKey = await getApiKey();
+    getPageHTML();
+
+    const apiKeyInput = document.getElementById("apiKey");
+    const resumeInput = document.getElementById("latexResume");
+    const saveBothButton = document.getElementById("saveBoth");
+    const tailorResumeButton = document.getElementById("tailorResume");
+    const editApiKeyButton = document.getElementById("editApiKey");
+    const saveApiKeyButton = document.getElementById("saveApiKey");
+    const editResumeButton = document.getElementById("editResume");
+    const saveResumeButton = document.getElementById("saveResume");
+    const statusMessage = document.getElementById('status');
+
+    const resume = await getSavedResume();
+    const apiKey = await getApiKey();
+
+    function hideAllInputs() {
+        apiKeyInput.classList.add("hidden");
+        resumeInput.classList.add("hidden");
+        saveApiKeyButton.classList.add("hidden");
+        saveResumeButton.classList.add("hidden");
+        saveBothButton.classList.add("hidden");
+    }
+
+
+    if (!apiKey && !resume) {
+        // Show the unified button if neither API key nor resume are set
+        saveBothButton.classList.remove("hidden");
+        apiKeyInput.classList.remove("hidden");
+        resumeInput.classList.remove("hidden");
+
+    } else {
+        tailorResumeButton.classList.remove("hidden");
 
         if (apiKey) {
-            document.getElementById('apiKeyContainer').classList.add('hidden');
-            document.getElementById('resumeContainer').classList.remove('hidden');
-            document.getElementById('tailorResume').classList.remove('hidden');
-            document.getElementById('editKey').classList.remove('hidden');
-        } else {
-            document.getElementById('tailorResume').classList.add('hidden');
-            document.getElementById('editKey').classList.add('hidden');
-            document.getElementById('resumeContainer').classList.add('hidden');
+            // Show "Edit API Key" button
+            editApiKeyButton.classList.remove("hidden");
         }
 
-        document.getElementById('saveKey').addEventListener('click', async () => {
-            const apiKey = document.getElementById('apiKey').value;
-            await saveApiKey(apiKey);
-        });
-
-        document.getElementById('editKey').addEventListener('click', () => {
-            document.getElementById('apiKeyContainer').classList.remove('hidden');
-            document.getElementById('tailorResume').classList.add('hidden');
-            document.getElementById('editKey').classList.add('hidden');
-        });
-
-        document.getElementById('tailorResume').addEventListener('click', async () => {
-            await handleTailorResume();
-        });
-    } catch (error) {
-        console.error("Error initializing DOMContentLoaded handler:", error);
+        if (resume) {
+            // Show "Edit Resume" button
+            editResumeButton.classList.remove("hidden");
+        }
     }
-});
 
+    // Save both API key and resume
+    saveBothButton.addEventListener("click", async () => {
+        const apiKeyValue = apiKeyInput.value;
+        const resumeValue = resumeInput.value;
+
+        if (apiKeyValue && resumeValue) {
+            // Save both to local storage
+            await saveApiKey(apiKey);
+            await saveResume(); // Save the resume if provided
+            hideAllInputs();
+            tailorResumeButton.classList.remove("hidden");
+            editApiKeyButton.classList.remove("hidden");
+            editResumeButton.classList.remove("hidden");
+            document.getElementById('status').innerText = "API Key and Resume saved successfully!";
+        } else {
+            document.getElementById('status').innerText = "Please enter a valid API Key.";
+        }
+    });
+
+    editApiKeyButton.addEventListener("click", async () => {
+        apiKeyInput.classList.remove("hidden");
+        apiKeyInput.value = await getApiKey()
+        saveApiKeyButton.classList.remove("hidden");
+        editApiKeyButton.classList.add("hidden");
+    });
+
+    saveApiKeyButton.addEventListener("click", () => {
+        const newApiKey = apiKeyInput.value;
+        if (newApiKey) {
+            saveApiKey(newApiKey);
+            apiKeyInput.classList.add("hidden");
+            saveApiKeyButton.classList.add("hidden");
+            editApiKeyButton.classList.remove("hidden");
+            statusMessage.innerText = "API Key saved successfully!";
+        }
+    });
+
+    editResumeButton.addEventListener("click", async () => {
+        resumeInput.classList.remove("hidden");
+        resumeInput.value = await getSavedResume();
+        saveResumeButton.classList.remove("hidden");
+        editResumeButton.classList.add("hidden");
+    });
+
+    saveResumeButton.addEventListener("click", async () => {
+        const newResume = resumeInput.value;
+        if (newResume) {
+            saveResume(newResume);
+            resumeInput.classList.add("hidden");
+            saveResumeButton.classList.add("hidden");
+            editResumeButton.classList.remove("hidden");
+            statusMessage.innerText = "Resume saved successfully!";
+
+        }
+    });
+
+    tailorResumeButton.addEventListener('click', async () => {
+        await handleTailorResume();
+    });
+
+});
 
 async function handleTailorResume() {
     try {
@@ -45,24 +118,18 @@ async function handleTailorResume() {
             return;
         }
 
-        // Get the LaTeX resume text from the textarea
-        const resumeText = document.getElementById('latexResume').value.trim();
+        const resumeText = await getSavedResume();
         if (!resumeText) {
             document.getElementById('status').innerText = "Please paste your resume in LaTeX format!";
             return;
-        } else {
-            document.getElementById('status').innerText = "Resume data received!";
         }
 
-        showLoadingWheel(true);  // Show loading wheel
+        showLoadingWheel(true);
 
-        const jobDescription = await extractJobDescription();
         if (!jobDescription) {
             document.getElementById('status').innerText = "Failed to extract job description!";
             showLoadingWheel(false);
             return;
-        } else {
-            document.getElementById('status').innerText = "Job description extracted!";
         }
 
         const tailoredResume = await sendApiCall(apiKey, resumeText, jobDescription);
@@ -86,22 +153,6 @@ function showLoadingWheel(show) {
     loadingWheel.style.display = show ? 'block' : 'none';
 }
 
-async function extractJobDescription() {
-    try {
-        console.log("Extracting full page content...");
-
-        const pageContent = document.body.innerText;  // Selects the entire page content
-        if (pageContent) {
-            return pageContent;
-        } else {
-            throw new Error("Page content not found");
-        }
-    } catch (e) {
-        console.error("Error extracting page content:", e);
-        throw e;
-    }
-}
-
 
 function downloadFile(filename, content) {
     const blob = new Blob([content], { type: 'application/x-tex' });
@@ -112,3 +163,49 @@ function downloadFile(filename, content) {
     a.click();
     URL.revokeObjectURL(url);
 }
+
+
+async function saveResume(resumeText) {
+    if (resumeText) {
+        return new Promise((resolve) => {
+            chrome.storage.local.set({ resume: resumeText }, () => {
+                resolve();
+            });
+        });
+    }
+}
+
+async function getSavedResume() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(['resume'], (result) => {
+            resolve(result.resume);
+        });
+    });
+}
+
+// Request the HTML from the content script
+function getPageHTML() {
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs.length === 0) {
+            console.error("No active tabs found");
+            return;
+        }
+
+        chrome.tabs.sendMessage(tabs[0].id, { action: "getText" }, (response) => {
+            if (chrome.runtime.lastError) {
+                console.error("Error sending message:", chrome.runtime.lastError.message);
+            } else {
+                if (response && response.text) {
+                    console.log("Page Text:", response.text);
+                    jobDescription = response.text;
+                    document.getElementById('textContent').textContent = response.text;
+                } else {
+                    console.error("No response from content script");
+                }
+            }
+        });
+    });
+
+}
+

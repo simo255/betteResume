@@ -20,13 +20,14 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 20px;
+    margin-bottom: 20px;
 }
 
 /* Header styling */
 h1 {
     color: #4CAF50;
-    font-size: 24px;
-    margin-bottom: 15px;
+    font-size: 20px;
+    margin-bottom: 10px;
     text-align: center;
 }
 
@@ -37,16 +38,6 @@ h1 {
     text-align: center;
 }
 
-/* API Key container styling */
-.api-key-container {
-    margin-bottom: 15px;
-}
-
-/* Resume container styling */
-.resume-container {
-    margin-bottom: 15px;
-}
-
 /* Input field styling */
 .input-field {
     width: 100%;
@@ -54,6 +45,7 @@ h1 {
     border: 2px solid #4CAF50;
     border-radius: 4px;
     font-size: 16px;
+    margin-bottom: 10px;
 }
 
 /* Button styling */
