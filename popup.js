@@ -61,9 +61,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             tailorResumeButton.classList.remove("hidden");
             editApiKeyButton.classList.remove("hidden");
             editResumeButton.classList.remove("hidden");
-            document.getElementById('status').innerText = "API Key and Resume saved successfully!";
+            statusMessage.innerText = "API Key and Resume saved successfully!";
         } else {
-            document.getElementById('status').innerText = "Please enter a valid API Key.";
+            statusMessage.innerText = "Please enter a valid API Key.";
         }
     });
 
@@ -189,7 +189,6 @@ function getPageHTML() {
                 if (response && response.text) {
                     console.log("Page Text:", response.text);
                     jobDescription = response.text;
-                    document.getElementById('textContent').textContent = response.text;
                 } else {
                     console.error("No response from content script");
                 }
