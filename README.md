@@ -1,3 +1,4 @@
+![image](https://github.com/simo255/betteResume/blob/main/icons/icon128.png)
 
 # betteResume
 
