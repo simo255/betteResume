@@ -3,20 +3,12 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport">
     <title>Tailor Resume</title>
     <link rel="stylesheet" href="popup.css">
 </head>
 
 <body>
-    <div id="apiKeyContainer" class="container">
-        <h1>Mistral API Key</h1>
-        <label for="apiKey">API Key:</label>
-        <input type="password" id="apiKey" class="input-field hidden" placeholder="Enter your API Key" />
-        <button id="editApiKey" class="button hidden">Edit API Key</button>
-        <button id="saveApiKey" class="button hidden">Save API Key</button>
-    </div>
-
     <div id="resumeContainer" class="container">
         <h1>Resume</h1>
         <label for="latexResume">Paste Resume in LaTeX format:</label>
@@ -25,11 +17,16 @@
         <button id="editResume" class="button hidden">Edit Resume</button>
         <button id="saveResume" class="button hidden">Save Resume</button>
     </div>
+    
+    <div id="apiKeyContainer" class="container">
+        <h1>Mistral API Key</h1>
+        <label for="apiKey">API Key:</label>
+        <input type="password" id="apiKey" class="input-field hidden" placeholder="Enter your API Key" />
+        <button id="editApiKey" class="button hidden">Edit API Key</button>
+        <button id="saveApiKey" class="button hidden">Save API Key</button>
+    </div>
 
-    <!-- Unified Save Button -->
-    <button id="saveBoth" class="button hidden">Save API Key and Resume</button>
-
-    <button id="tailorResume" class="button hidden">Tailor Resume</button>
+    <button id="tailorResume" class="button">Tailor Resume</button>
 
     <form  action="https://www.overleaf.com/docs" method="post" target="_blank">
         <input class="overleaf-form" id="latexCode" type="text" name="snip_uri"><br>

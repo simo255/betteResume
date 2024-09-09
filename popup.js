@@ -8,64 +8,40 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const apiKeyInput = document.getElementById("apiKey");
     const resumeInput = document.getElementById("latexResume");
-    const saveBothButton = document.getElementById("saveBoth");
-    const tailorResumeButton = document.getElementById("tailorResume");
+
     const editApiKeyButton = document.getElementById("editApiKey");
     const saveApiKeyButton = document.getElementById("saveApiKey");
     const editResumeButton = document.getElementById("editResume");
     const saveResumeButton = document.getElementById("saveResume");
     const statusMessage = document.getElementById('status');
 
+    const tailorResumeButton = document.getElementById("tailorResume");
+
+
     const resume = await getSavedResume();
     const apiKey = await getApiKey();
 
-    function hideAllInputs() {
-        apiKeyInput.classList.add("hidden");
-        resumeInput.classList.add("hidden");
-        saveApiKeyButton.classList.add("hidden");
-        saveResumeButton.classList.add("hidden");
-        saveBothButton.classList.add("hidden");
-    }
-
 
     if (!apiKey && !resume) {
-
-        saveBothButton.classList.remove("hidden");
+        saveApiKeyButton.classList.remove("hidden");
+        saveResumeButton.classList.remove("hidden");
         apiKeyInput.classList.remove("hidden");
         resumeInput.classList.remove("hidden");
-
     } else {
-        tailorResumeButton.classList.remove("hidden");
-
         if (apiKey) {
-
             editApiKeyButton.classList.remove("hidden");
+        } else {
+            saveApiKeyButton.classList.remove("hidden");
+            apiKeyInput.classList.remove("hidden");
         }
-
+    
         if (resume) {
-
             editResumeButton.classList.remove("hidden");
+        } else {
+            saveResumeButton.classList.remove("hidden");
+            resumeInput.classList.remove("hidden");
         }
     }
-
-    // Save both API key and resume
-    saveBothButton.addEventListener("click", () => {
-        const apiKeyValue = apiKeyInput.value;
-        const resumeValue = resumeInput.value;
-
-        if (apiKeyValue && resumeValue) {
-
-            saveApiKey(apiKey);
-            saveResume(resumeValue);
-            hideAllInputs();
-            tailorResumeButton.classList.remove("hidden");
-            editApiKeyButton.classList.remove("hidden");
-            editResumeButton.classList.remove("hidden");
-            statusMessage.innerText = "API Key and Resume saved successfully!";
-        } else {
-            statusMessage.innerText = "Please enter a valid API Key.";
-        }
-    });
 
     editApiKeyButton.addEventListener("click", async () => {
         apiKeyInput.classList.remove("hidden");
@@ -105,37 +81,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     tailorResumeButton.addEventListener('click', async () => {
-        await handleTailorResume();
         statusMessage.innerText = "Tailoring resume...";
+
+        const apiKey = await getApiKey();
+        const resume = await getSavedResume();
+
+        if (!apiKey) document.getElementById('status').innerText = "Please save your API Key first!";
+        else if (!resume) document.getElementById('status').innerText = "Please save your resume before !";
+        else if (!jobDescription) document.getElementById('status').innerText = "Failed to extract job description!";
+        else await handleTailorResume(apiKey, resume, jobDescription);
     });
 
 });
 
-async function handleTailorResume() {
-
-    const apiKey = await getApiKey();
-    if (!apiKey) {
-        document.getElementById('status').innerText = "Please enter your API Key first!";
-        return;
-    }
-
-    const resumeText = await getSavedResume();
-    if (!resumeText) {
-        document.getElementById('status').innerText = "Please paste your resume in LaTeX format!";
-        document.getElementById('latexResume').classList.remove("hidden");
-        document.getElementById('saveResume').classList.remove("hidden");
-        return;
-    }
-
-
-    if (!jobDescription) {
-        document.getElementById('status').innerText = "Failed to extract job description!";
-        return;
-    }
+async function handleTailorResume(apiKey, resumeText, jobDescription) {
 
     const tailoredResume = await sendApiCall(apiKey, resumeText, jobDescription);
 
-    console.log("Tailored Resume:", tailoredResume);    
+    console.log("Tailored Resume:", tailoredResume);
 
     const latexCode = tailoredResume.match(/```latex([\s\S]*?)```/)[1].trim();
 
