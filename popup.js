@@ -49,14 +49,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Save both API key and resume
-    saveBothButton.addEventListener("click", async () => {
+    saveBothButton.addEventListener("click", () => {
         const apiKeyValue = apiKeyInput.value;
         const resumeValue = resumeInput.value;
 
         if (apiKeyValue && resumeValue) {
 
-            await saveApiKey(apiKey);
-            await saveResume();
+            saveApiKey(apiKey);
+            saveResume(resumeValue);
             hideAllInputs();
             tailorResumeButton.classList.remove("hidden");
             editApiKeyButton.classList.remove("hidden");
@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     tailorResumeButton.addEventListener('click', async () => {
         await handleTailorResume();
+        statusMessage.innerText = "Tailoring resume...";
     });
 
 });
@@ -121,18 +122,20 @@ async function handleTailorResume() {
     const resumeText = await getSavedResume();
     if (!resumeText) {
         document.getElementById('status').innerText = "Please paste your resume in LaTeX format!";
+        document.getElementById('latexResume').classList.remove("hidden");
+        document.getElementById('saveResume').classList.remove("hidden");
         return;
     }
 
-    showLoadingWheel(true);
 
     if (!jobDescription) {
         document.getElementById('status').innerText = "Failed to extract job description!";
-        showLoadingWheel(false);
         return;
     }
 
     const tailoredResume = await sendApiCall(apiKey, resumeText, jobDescription);
+
+    console.log("Tailored Resume:", tailoredResume);    
 
     const latexCode = tailoredResume.match(/```latex([\s\S]*?)```/)[1].trim();
 
@@ -145,15 +148,8 @@ async function handleTailorResume() {
     } else {
         document.getElementById('status').innerText = "Failed to tailor resume.";
     }
-    showLoadingWheel(false);
 
 }
-
-function showLoadingWheel(show) {
-    const loadingWheel = document.getElementById('loadingWheel');
-    loadingWheel.style.display = show ? 'block' : 'none';
-}
-
 
 async function saveResume(resumeText) {
     if (resumeText) {

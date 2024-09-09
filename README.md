@@ -2,10 +2,12 @@
 # betteResume
 
 **betteResume** is a Chrome extension designed to streamline the process of tailoring your resume for job applications. It reads job offers from a web page, makes an API call to Mistral AI using a user-provided API key, and opens it in Overleaf for further edits.
+
 ## Features
 
 - **Extract Job Offers:** Reads job offers from a web page.
 - **Generate Resume with AI:** Uses Mistral's nano model API to tailor your resume based on job offers.
+- **API Key encryption** Uses AES-GCM 256 to store securely the API key in extension's storage.
 - **Output Formats:** Opens the resume directly in Overleaf website
 - **Resume Input:** Allows you to paste your resume in LaTeX format for tailoring.
 
