@@ -1,7 +1,9 @@
 import { getApiKey, saveApiKey } from './key_management/api_key_management.js';
-import { sendApiCall } from './api.js';
+import { sendGeminiApiCall, sendMistralApiCall } from './api.js';
 
 let jobDescription = ""
+
+let selectedLLM = ""
 
 document.addEventListener('DOMContentLoaded', async () => {
     getPageHTML();
@@ -42,6 +44,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             resumeInput.classList.remove("hidden");
         }
     }
+
+    const apiSelection = document.getElementById('apiSelection');
+
+    apiSelection.addEventListener('change', (event) => {
+        const selectedApi = event.target.value;
+        selectedLLM = selectedApi;
+        // You can now use the selectedApi variable as needed
+    });
 
     editApiKeyButton.addEventListener("click", async () => {
         apiKeyInput.classList.remove("hidden");
@@ -95,9 +105,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function handleTailorResume(apiKey, resumeText, jobDescription) {
+    const tailoredResume = ""
 
-    const tailoredResume = await sendApiCall(apiKey, resumeText, jobDescription);
-
+    if(selectedLLM === "Mistral"){
+        tailoredResume = await sendMistralApiCall(apiKey, resumeText, jobDescription);
+    }
+    else{
+        tailoredResume = await sendGeminiApiCall(apiKey, resumeText, jobDescription);
+    }
+    
     console.log("Tailored Resume:", tailoredResume);
 
     const latexCode = tailoredResume.match(/```latex([\s\S]*?)```/)[1].trim();

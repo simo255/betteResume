@@ -1,4 +1,5 @@
-async function sendApiCall(apiKey, resumeText, jobDescription) {
+
+async function sendMistralApiCall(apiKey, resumeText, jobDescription) {
 
     const apiUrl = "https://api.mistral.ai/v1/chat/completions";
     const model = "open-mistral-nemo-2407";
@@ -55,6 +56,38 @@ async function sendApiCall(apiKey, resumeText, jobDescription) {
     }
 }
 
+
+
+async function sendGeminiApiCall(apiKey, resumeText, jobDescription) {
+    const data = {
+        "contents": [{
+            "parts": [{ "text": "This is my resume : " + resumeText + "\n . Make sure it's a one page format. Don't add any comments while answering" }]
+        }],
+        "system_instruction": {
+            "parts": { "text": getSystemContent(jobDescription) }
+        },
+        "generationConfig": {
+            "temperature": 1.4,
+        }
+    }
+
+    const options = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    };
+    try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+        const response = await fetch(url, options);
+        const json = await response.json();
+        const latexCode = json.candidates[0].content.parts[0].text;
+        return latexCode;
+    } catch (error) {
+        console.error('error:' + error);
+    }
+}
+
 function getSystemContent(jobDescription) {
     const stmt0 = "You are  a Talent Acquisition Specialist, you have to select the best candidate for a job application, you have received a resume from a candidate, but it's not tailored to the job description, you have to generate a new resume for the candidate.";
     const stmt1 = "This is the job description : " + jobDescription + ", You have to generate a resume for this job application.";
@@ -66,9 +99,9 @@ function getSystemContent(jobDescription) {
     const stmt9 = "Make sure it's a one page format, the length of the answer can be up to 6500 characters, without spaces, but not less than 5500, this is mandatory.";
     const stmt11 = "If my resume has a skills section, don't add the keywords if it's already present in other sections. YOU have to add only the missing keywords in the skills section.";
     const stmt14 = "Your answer must be in the following format : ```latex Your answer ```.";
-    return stmt0 + stmt1  + stmt3 + stmt4  + stmt6 + stmt9  + stmt11  + stmt14 + stmt16 + stmt5;
+    return stmt0 + stmt1 + stmt3 + stmt4 + stmt6 + stmt9 + stmt11 + stmt14 + stmt16 + stmt5;
 }
 
 
 
-export { sendApiCall };
+export { sendMistralApiCall, sendGeminiApiCall };
