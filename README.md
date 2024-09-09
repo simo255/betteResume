@@ -47,9 +47,10 @@
 
 - **Upcoming Features:**
   - Upload your resume as a pdf file directly, instead of copy/paste
-  - Ability to select other LLM based on user choice.
+  - Ability to select other LLMs based on user choice.
   - Improved error handling and user notifications.
   - Generate Motivation letters.
+  - Better UI/UX
 
 ## License
 
