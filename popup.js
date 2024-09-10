@@ -3,7 +3,7 @@ import { sendGeminiApiCall, sendMistralApiCall } from './api.js';
 
 let jobDescription = ""
 
-let selectedLLM = ""
+let selectedLLM = "Mistral"
 
 document.addEventListener('DOMContentLoaded', async () => {
     getPageHTML();
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             saveApiKeyButton.classList.remove("hidden");
             apiKeyInput.classList.remove("hidden");
         }
-    
+
         if (resume) {
             editResumeButton.classList.remove("hidden");
         } else {
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     apiSelection.addEventListener('change', (event) => {
         const selectedApi = event.target.value;
         selectedLLM = selectedApi;
-        // You can now use the selectedApi variable as needed
+
     });
 
     editApiKeyButton.addEventListener("click", async () => {
@@ -105,15 +105,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function handleTailorResume(apiKey, resumeText, jobDescription) {
-    const tailoredResume = ""
+    let tailoredResume = ""
 
-    if(selectedLLM === "Mistral"){
+    if (selectedLLM === "Mistral") {
         tailoredResume = await sendMistralApiCall(apiKey, resumeText, jobDescription);
     }
-    else{
+    else {
         tailoredResume = await sendGeminiApiCall(apiKey, resumeText, jobDescription);
     }
-    
     console.log("Tailored Resume:", tailoredResume);
 
     const latexCode = tailoredResume.match(/```latex([\s\S]*?)```/)[1].trim();
@@ -159,7 +158,7 @@ function getPageHTML() {
 
         chrome.tabs.sendMessage(tabs[0].id, { action: "getText" }, (response) => {
             if (chrome.runtime.lastError) {
-                console.error("Error sending message:", chrome.runtime.lastError.message);
+                document.getElementById('status').innerText = "An error occurred, please refresh the page and try again.";
             } else {
                 if (response && response.text) {
                     console.log("Page Text:", response.text);
