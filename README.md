@@ -39,9 +39,12 @@
 4. Click the 'Tailor Resume' button.
 5. The extension will process the job offer, tailor your resume. Click on Open in overleaf button to open the latex file in Overleaf.
 
-   ![image](https://github.com/user-attachments/assets/3bcef3e8-65f5-47a1-8484-bbd40c672b26)
+![image](https://github.com/user-attachments/assets/8ed7861e-1d18-4bce-8b14-78103cbc0a0e)
 
-   ![image](https://github.com/user-attachments/assets/77fcf86b-c4e9-41c7-bdbd-557cc6b48ada)
+![image](https://github.com/user-attachments/assets/729b5dc1-3a61-44e6-85c7-123d38ff978f)
+
+![image](https://github.com/user-attachments/assets/ef713fa9-f24e-4c0c-afdb-dfdb2a10bfc8)
+
 
 
 
