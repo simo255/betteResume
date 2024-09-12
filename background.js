@@ -1,5 +1,5 @@
 import { sendGeminiApiCall, sendMistralApiCall } from './api.js';
-import { saveResumeList } from './resume_management.js';
+import { saveResumeList } from './resume-helper.js';
 
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

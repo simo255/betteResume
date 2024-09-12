@@ -1,5 +1,5 @@
 import { getApiKey, saveApiKey } from './key_management/api_key_management.js';
-import { getResumeList, saveResumeList } from './resume_management.js';
+import { getResumeList, saveResumeList, getUserResume, saveUserResume } from './resume-helper.js';
 
 
 let jobOffer = { description: "", url: "" };
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tailorResumeButton = document.getElementById("tailorResume");
 
 
-    const resume = await getSavedResume();
+    const resume = await GetUserResume();
     const apiKey = await getApiKey();
 
 
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     editApiKeyButton.addEventListener("click", async () => {
         apiKeyInput.classList.remove("hidden");
-        apiKeyInput.value = await getApiKey()
+        apiKeyInput.value = await getApiKey();
         saveApiKeyButton.classList.remove("hidden");
         editApiKeyButton.classList.add("hidden");
     });
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     editResumeButton.addEventListener("click", async () => {
         resumeInput.classList.remove("hidden");
-        resumeInput.value = await getSavedResume();
+        resumeInput.value = await getUserResume();
         saveResumeButton.classList.remove("hidden");
         editResumeButton.classList.add("hidden");
     });
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveResumeButton.addEventListener("click", async () => {
         const newResume = resumeInput.value;
         if (newResume) {
-            saveResume(newResume);
+            saveUserResume(newResume);
             resumeInput.classList.add("hidden");
             saveResumeButton.classList.add("hidden");
             editResumeButton.classList.remove("hidden");
@@ -81,10 +81,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         }
     });
-    // const data = await getStorageData(['tailoredResume']);
-
-    // const tailoredResume = data.tailoredResume.text;
-    // const url = data.tailoredResume.url;
 
     const tailoredResume = await getResumeList(jobOffer.url);
 
@@ -146,42 +142,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
 });
-
-
-
-async function saveResume(resumeText) {
-    if (resumeText) {
-        return new Promise((resolve) => {
-            chrome.storage.local.set({ resume: resumeText }, () => {
-                resolve();
-            });
-        });
-    }
-}
-
-async function getSavedResume() {
-    return new Promise((resolve) => {
-        chrome.storage.local.get(['resume'], (result) => {
-            resolve(result.resume);
-        });
-    });
-}
-
-
-
-
-function getStorageData(keys) {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.get(keys, function (result) {
-            if (chrome.runtime.lastError) {
-                reject(chrome.runtime.lastError);
-            } else {
-                resolve(result);
-            }
-        });
-    });
-}
-
 
 function getPageData() {
 
