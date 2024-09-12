@@ -10,62 +10,57 @@ async function sendMistralApiCall(apiKey, resumeText, jobDescription) {
     Make sure you don't repeat the same keywords, try to find some synonyms or other ways to express the same idea.
     `
     const prefix = "```latex";
-    try {
-        const response = await fetch(apiUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: model,
-                temperature: 0.7,
-                messages: [
-                    {
-                        role: "system",
-                        content: systemContent
-                    },
-                    {   
-                        role: "system",
-                        content: `This is the job description : ${jobDescription}, You have to generate a resume for this job application.`
-                    },
-                    {
-                        role: "user",
-                        content: userPrompt
-                    },
-                    {
-                        role: "user",
-                        content: userPrompt2
-                    },
-                    {
-                        role: "assistant",
-                        prefix: true,
-                        content: prefix
-                    }
+    const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+            model: model,
+            temperature: 0.7,
+            messages: [
+                {
+                    role: "system",
+                    content: systemContent
+                },
+                {
+                    role: "system",
+                    content: `This is the job description : ${jobDescription}, You have to generate a resume for this job application.`
+                },
+                {
+                    role: "user",
+                    content: userPrompt
+                },
+                {
+                    role: "user",
+                    content: userPrompt2
+                },
+                {
+                    role: "assistant",
+                    prefix: true,
+                    content: prefix
+                }
 
-                ]
-            })
-        });
+            ]
+        })
+    });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error("API call failed:", errorText);
-            document.getElementById('status').innerText = `Error: ${errorText}`;
-
-            throw new Error(`API call failed with status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.choices && data.choices.length > 0) {
-            return data.choices[0].message.content;
-        } else {
-            throw new Error("No choices found in API response");
-        }
-    } catch (error) {
-        console.error("Error fetching tailored resume:", error.message);
-        document.getElementById('status').innerText = `Error: ${error.message}`;
-        return null;
+    if (!response.ok) {
+        const errorText = await response.text();
+        return { "status": false, "message": errorText };
     }
+
+    const data = await response.json();
+    if (data.choices && data.choices.length > 0) {
+        const latexCode = data.choices[0].message.content;
+
+        return { "status": true, "latexCode": latexCode };
+
+    } else {
+        return { "status": false, "message": "No response from Mistral API" };
+    }
+
 }
 
 
@@ -88,16 +83,19 @@ async function sendGeminiApiCall(apiKey, resumeText, jobDescription) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     };
-    try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-        const response = await fetch(url, options);
-        const json = await response.json();
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const response = await fetch(url, options);
+    const json = await response.json();
+
+    if (json.error) {
+        return { "status": false, "message": json.error.message };
+    } else {
         const latexCode = json.candidates[0].content.parts[0].text;
-        return latexCode;
-    } catch (error) {
-        console.error('error:' + error);
+        return { "status": true, "latexCode": latexCode };
     }
+
 }
 
 function getSystemContent() {

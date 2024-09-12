@@ -1,12 +1,10 @@
 import { getApiKey, saveApiKey } from './key_management/api_key_management.js';
-import { sendGeminiApiCall, sendMistralApiCall } from './api.js';
 
-let jobDescription = ""
 
-let selectedLLM = "Mistral"
+let jobOffer = { description: "", url: "" };
 
 document.addEventListener('DOMContentLoaded', async () => {
-    getPageHTML();
+    getPageData();
 
     const apiKeyInput = document.getElementById("apiKey");
     const resumeInput = document.getElementById("latexResume");
@@ -45,13 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    const apiSelection = document.getElementById('apiSelection');
-
-    apiSelection.addEventListener('change', (event) => {
-        const selectedApi = event.target.value;
-        selectedLLM = selectedApi;
-
-    });
 
     editApiKeyButton.addEventListener("click", async () => {
         apiKeyInput.classList.remove("hidden");
@@ -89,45 +80,66 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         }
     });
+    const data = await getStorageData(['tailoredResume']);
+
+
+    const tailoredResume = data.tailoredResume.text;
+    const url = data.tailoredResume.url;
+
+
+    if (tailoredResume && url === jobOffer.url) {
+        document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
+        document.getElementById('open-overleaf').classList.remove("hidden");
+        document.getElementById('status').innerText = "It will open the last tailored resume for this job offer";
+        tailorResumeButton.innerText = "Tailor Resume again";
+    } else {
+        document.getElementById('open-overleaf').classList.add("hidden");
+        tailorResumeButton.innerText = "Tailor Resume";
+
+    }
 
     tailorResumeButton.addEventListener('click', async () => {
-        statusMessage.innerText = "Tailoring resume...";
-
-        const apiKey = await getApiKey();
-        const resume = await getSavedResume();
 
         if (!apiKey) document.getElementById('status').innerText = "Please save your API Key first!";
         else if (!resume) document.getElementById('status').innerText = "Please save your resume before !";
-        else if (!jobDescription) document.getElementById('status').innerText = "Failed to extract job description!";
-        else await handleTailorResume(apiKey, resume, jobDescription);
+        else if (!jobOffer) document.getElementById('status').innerText = "Failed to extract job description!";
+
+        const selectedLLM = document.getElementById('apiSelection').value;
+        document.getElementById('open-overleaf').classList.add("hidden");
+        chrome.storage.local.set({ "tailoredResume": "" });
+        console.log("Tailoring resume...");
+
+        chrome.runtime.sendMessage({ action: "makeAPICall", apiKey, resume, jobOffer, selectedLLM });
+
+        statusMessage.innerText = "Tailoring resume...";
+
+    });
+
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.tailoredResume) {
+            console.log("Received tailored resume");
+            document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(message.tailoredResume);
+            document.getElementById('open-overleaf').classList.remove("hidden");
+            document.getElementById('status').innerText = "Your resume has been tailored successfully!";
+        } else {
+            document.getElementById('open-overleaf').classList.add("hidden");
+
+        }
+        if (message.api_error) {
+            document.getElementById('open-overleaf').classList.add("hidden");
+            document.getElementById('status').innerText = message.api_error;
+            
+            if (tailoredResume) {
+                document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
+                document.getElementById('open-overleaf').classList.remove("hidden");
+            }
+        }
+
     });
 
 });
 
-async function handleTailorResume(apiKey, resumeText, jobDescription) {
-    let tailoredResume = ""
 
-    if (selectedLLM === "Mistral") {
-        tailoredResume = await sendMistralApiCall(apiKey, resumeText, jobDescription);
-    }
-    else {
-        tailoredResume = await sendGeminiApiCall(apiKey, resumeText, jobDescription);
-    }
-    console.log("Tailored Resume:", tailoredResume);
-
-    const latexCode = tailoredResume.match(/```latex([\s\S]*?)```/)[1].trim();
-
-    document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(latexCode);
-
-
-    if (latexCode) {
-        document.getElementById('status').innerText = "Your resume has been tailored successfully!";
-        document.getElementById('open-overleaf').classList.remove("hidden");
-    } else {
-        document.getElementById('status').innerText = "Failed to tailor resume.";
-    }
-
-}
 
 async function saveResume(resumeText) {
     if (resumeText) {
@@ -147,8 +159,20 @@ async function getSavedResume() {
     });
 }
 
+function getStorageData(keys) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get(keys, function (result) {
+            if (chrome.runtime.lastError) {
+                reject(chrome.runtime.lastError);
+            } else {
+                resolve(result);
+            }
+        });
+    });
+}
 
-function getPageHTML() {
+
+function getPageData() {
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs.length === 0) {
@@ -157,16 +181,15 @@ function getPageHTML() {
         }
 
         chrome.tabs.sendMessage(tabs[0].id, { action: "getText" }, (response) => {
-            if (chrome.runtime.lastError) {
-                document.getElementById('status').innerText = "An error occurred, please refresh the page and try again.";
+
+            if (response && response.text && response.url) {
+                jobOffer.description = response.text;
+                jobOffer.url = response.url;
             } else {
-                if (response && response.text) {
-                    console.log("Page Text:", response.text);
-                    jobDescription = response.text;
-                } else {
-                    console.error("No response from content script");
-                }
+                document.getElementById('status').innerText = "An error occurred, please refresh the page and try again.";
+
             }
+
         });
     });
 
