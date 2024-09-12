@@ -38,7 +38,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (latexCode) {
         chrome.storage.local.set({ "tailoredResume": { text: latexCode, url: jobOffer.url } });
         chrome.runtime.sendMessage({ "tailoredResume": latexCode });
-    } else {
-        chrome.runtime.sendMessage({ "tailoredResume": "" });
     }
 }

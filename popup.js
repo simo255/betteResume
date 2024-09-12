@@ -82,7 +82,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     const data = await getStorageData(['tailoredResume']);
 
-
     const tailoredResume = data.tailoredResume.text;
     const url = data.tailoredResume.url;
 
@@ -100,14 +99,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     tailorResumeButton.addEventListener('click', async () => {
 
-        if (!apiKey) document.getElementById('status').innerText = "Please save your API Key first!";
-        else if (!resume) document.getElementById('status').innerText = "Please save your resume before !";
-        else if (!jobOffer) document.getElementById('status').innerText = "Failed to extract job description!";
+        if (!apiKey) {
+            document.getElementById('status').innerText = "Please save your API Key first!";
+            return;
+        }
+
+        if (!resume) {
+            document.getElementById('status').innerText = "Please save your resume before!";
+            return;
+        }
+
+        if (!jobOffer) {
+            document.getElementById('status').innerText = "Failed to extract job description!";
+            return;
+        }
 
         const selectedLLM = document.getElementById('apiSelection').value;
+
         document.getElementById('open-overleaf').classList.add("hidden");
         chrome.storage.local.set({ "tailoredResume": "" });
-        console.log("Tailoring resume...");
 
         chrome.runtime.sendMessage({ action: "makeAPICall", apiKey, resume, jobOffer, selectedLLM });
 
@@ -120,14 +130,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(message.tailoredResume);
             document.getElementById('open-overleaf').classList.remove("hidden");
             document.getElementById('status').innerText = "Your resume has been tailored successfully!";
-        } else {
-            document.getElementById('open-overleaf').classList.add("hidden");
-
-        }
-        if (message.api_error) {
+            
+        } else if (message.api_error) {
             document.getElementById('open-overleaf').classList.add("hidden");
             document.getElementById('status').innerText = message.api_error;
-            
+
             if (tailoredResume) {
                 document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
                 document.getElementById('open-overleaf').classList.remove("hidden");
