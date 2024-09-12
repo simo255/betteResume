@@ -6,23 +6,23 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f0f2f5;
-    color: #333;
+    background-color: #333;
+    color: #fff;
     width: 300px;
     padding: 20px;
 }
 
 .container {
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px;
+    background: #222;
+    border-radius: 10px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    margin-bottom: 10px;
 }
 
 h1 {
-    color: #4CAF50;
-    font-size: 20px;
+    color: #5271ff;
+    font-size: 18px;
     margin-bottom: 10px;
     text-align: center;
 }
@@ -36,14 +36,16 @@ h1 {
 .input-field {
     width: 100%;
     padding: 10px;
-    border: 2px solid #4CAF50;
+    border: 2px solid #5271ff;
     border-radius: 4px;
     font-size: 16px;
     margin-bottom: 10px;
+    background-color: #222;
+    color: #fff;
 }
 
 .button {
-    background-color: #4CAF50;
+    background-color: #5271ff;
     color: white;
     border: none;
     padding: 10px 15px;
@@ -52,11 +54,11 @@ h1 {
     cursor: pointer;
     transition: background-color 0.3s ease;
     width: 100%;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .button:hover {
-    background-color: #45a049;
+    background-color: #103c79;
 }
 
 .loading {
@@ -65,7 +67,7 @@ h1 {
     align-items: center;
     font-size: 16px;
     font-weight: bold;
-    color: #4CAF50;
+    color: #5271ff;
 }
 
 .hidden {
@@ -74,4 +76,9 @@ h1 {
 
 .overleaf-form {
     visibility: hidden;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
 }
