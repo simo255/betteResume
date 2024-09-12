@@ -1,4 +1,5 @@
 import { sendGeminiApiCall, sendMistralApiCall } from './api.js';
+import { saveResumeList } from './resume_management.js';
 
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -36,7 +37,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const latexCode = latexMatch ? latexMatch[1].trim() : "";
 
     if (latexCode) {
-        chrome.storage.local.set({ "tailoredResume": { text: latexCode, url: jobOffer.url } });
-        chrome.runtime.sendMessage({ "tailoredResume": latexCode });
+      //  chrome.storage.local.set({ "tailoredResume": { text: latexCode, url: jobOffer.url } });
+      saveResumeList(jobOffer.url, latexCode);  
+      chrome.runtime.sendMessage({ "tailoredResume": latexCode });
     }
 }

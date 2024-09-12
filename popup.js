@@ -1,4 +1,5 @@
 import { getApiKey, saveApiKey } from './key_management/api_key_management.js';
+import { getResumeList, saveResumeList } from './resume_management.js';
 
 
 let jobOffer = { description: "", url: "" };
@@ -80,13 +81,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         }
     });
-    const data = await getStorageData(['tailoredResume']);
+    // const data = await getStorageData(['tailoredResume']);
 
-    const tailoredResume = data.tailoredResume.text;
-    const url = data.tailoredResume.url;
+    // const tailoredResume = data.tailoredResume.text;
+    // const url = data.tailoredResume.url;
 
+    const tailoredResume = await getResumeList(jobOffer.url);
 
-    if (tailoredResume && url === jobOffer.url) {
+    if (tailoredResume) {
         document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
         document.getElementById('open-overleaf').classList.remove("hidden");
         document.getElementById('status').innerText = "It will open the last tailored resume for this job offer";
@@ -117,7 +119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const selectedLLM = document.getElementById('apiSelection').value;
 
         document.getElementById('open-overleaf').classList.add("hidden");
-        chrome.storage.local.set({ "tailoredResume": "" });
+        saveResumeList(jobOffer.url, "");
 
         chrome.runtime.sendMessage({ action: "makeAPICall", apiKey, resume, jobOffer, selectedLLM });
 
@@ -165,23 +167,7 @@ async function getSavedResume() {
     });
 }
 
-function saveResumeList(url, latexCode) {
-    chrome.storage.local.set({ [url]: latexCode }, () => {
-        console.log('Resume saved successfully!');
-    });
-}
 
-function getResumeList(url) {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.get([url], (result) => {
-            if (chrome.runtime.lastError) {
-                reject(new Error(chrome.runtime.lastError));
-            } else {
-                resolve(result[url] || null);
-            }
-        });
-    });
-}
 
 
 function getStorageData(keys) {
