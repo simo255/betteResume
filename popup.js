@@ -117,7 +117,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.tailoredResume) {
-            console.log("Received tailored resume");
             document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(message.tailoredResume);
             document.getElementById('open-overleaf').classList.remove("hidden");
             document.getElementById('status').innerText = "Your resume has been tailored successfully!";
@@ -158,6 +157,25 @@ async function getSavedResume() {
         });
     });
 }
+
+function saveResumeList(url, latexCode) {
+    chrome.storage.local.set({ [url]: latexCode }, () => {
+        console.log('Resume saved successfully!');
+    });
+}
+
+function getResumeList(url) {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get([url], (result) => {
+            if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError));
+            } else {
+                resolve(result[url] || null);
+            }
+        });
+    });
+}
+
 
 function getStorageData(keys) {
     return new Promise((resolve, reject) => {
