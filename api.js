@@ -4,7 +4,11 @@ async function sendMistralApiCall(apiKey, resumeText, jobDescription) {
     const apiUrl = "https://api.mistral.ai/v1/chat/completions";
     const model = "open-mistral-nemo-2407";
     const systemContent = getSystemContent(jobDescription);
-    const userPrompt = "This is my resume : " + resumeText + "\n . Make sure it's a one page format. Don't add any comments while answering"
+    const userPrompt = `
+    This is my resume : ${resumeText}. `
+    const userPrompt2 = `Try to replace some points by situations that may fit to the job description, that i could have done during my previous experiences.
+    Make sure you don't repeat the same keywords, try to find some synonyms or other ways to express the same idea.
+    `
     const prefix = "```latex";
     try {
         const response = await fetch(apiUrl, {
@@ -21,9 +25,17 @@ async function sendMistralApiCall(apiKey, resumeText, jobDescription) {
                         role: "system",
                         content: systemContent
                     },
+                    {   
+                        role: "system",
+                        content: `This is the job description : ${jobDescription}, You have to generate a resume for this job application.`
+                    },
                     {
                         role: "user",
                         content: userPrompt
+                    },
+                    {
+                        role: "user",
+                        content: userPrompt2
                     },
                     {
                         role: "assistant",
@@ -88,10 +100,14 @@ async function sendGeminiApiCall(apiKey, resumeText, jobDescription) {
     }
 }
 
-function getSystemContent(jobDescription) {
+function getSystemContent() {
+    const INSTRUCTION_1 = `
+    Tailor my resme to the job description below. Make sure it's a one page format. Don't add any comments while answering.
+    `
+
     const INSTRUCTION = `
     You are  a Talent Acquisition Specialist, you have to select the best candidate for a job application, you have received a resume from a candidate, but it's not tailored to the job description, you have to generate a new resume for the candidate. 
-    This is the job description : ${jobDescription}, You have to generate a resume for this job application.
+   
     You will generate a new resume for me using the appropriate keywords for a better match. 
     According to my resume infos, you have to find a way to make it more relevant to the job description. As if I truly have the experience and the skills required for the job.
     if some informations are not really relevant, you can skip it, or at least add some bullet points that may fit to the job description. 
