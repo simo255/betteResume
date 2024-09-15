@@ -55,12 +55,3 @@ async function handleTailorResume(apiKey, resume, jobOffer, selectedLLM) {
         chrome.storage.local.set({ currentAppStatus: AppStatus.TAILORED_RESUME });
     }
 }
-
-
-async function returnIfUrlSaved(url) {
-    return new Promise((resolve) => {
-        chrome.storage.local.get([url], (result) => {
-            resolve(result.url);
-        });
-    });
-}

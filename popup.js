@@ -171,7 +171,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 statusMessage.innerText = "Saved job offer detected!";
                 break;
             case AppStatus.API_CALL:
-                statusMessage.innerText = "Tailoring resume !";
+                statusMessage.innerText = "Tailoring resume ...";
+                tailorResumeButton.setAttribute("disabled", "true"); 
                 break;
             case AppStatus.TAILORED_RESUME:
                 statusMessage.innerText = "Resume tailored successfully!";
