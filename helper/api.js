@@ -63,17 +63,12 @@ async function sendMistralApiCall(apiKey, resumeText, jobDescription) {
 
 async function sendGeminiApiCall(apiKey, resumeText, jobDescription) {
     const data = {
-        "system_instruction": {
-            "parts": { "text": INSTRUCTION }
+        system_instruction: {
+            parts: [{ "text": INSTRUCTION },
+            { "text": `This is the job description : ${jobDescription}, You have to generate a resume for this job application.` }]
         },
-        "system_instruction": {
-            "parts": { "text": `This is the job description : ${jobDescription}, You have to generate a resume for this job application.` }
-        },
-        "contents": [{
-            "parts": [{ "text": `This is my resume : ${resumeText}` }]
-        }],
-        "contents": [{
-            "parts": [{ "text": USER_PROMPT }]
+        contents: [{
+            parts: [{ "text": `This is my resume : ${resumeText}` }, { "text": USER_PROMPT }]
         }],
      
         "generationConfig": {
@@ -91,7 +86,6 @@ async function sendGeminiApiCall(apiKey, resumeText, jobDescription) {
 
     const response = await fetch(url, options);
     const json = await response.json();
-
     if (json.error) {
         return { "status": false, "message": json.error.message };
     } else {

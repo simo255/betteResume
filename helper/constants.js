@@ -13,4 +13,13 @@ const USER_PROMPT = `Try to replace some points by situations that may fit to th
     Make sure you don't repeat the same keywords, try to find some synonyms or other ways to express the same idea.
     `
 
-export { INSTRUCTION, USER_PROMPT }
+
+const AppStatus = {
+    NEW_JOB_OFFER: 'New job offer',
+    SAVED_JOB_OFFER: 'Saved job offer',
+    API_CALL: 'Api call',
+    TAILORED_RESUME: 'Tailored resume',
+    ERROR: 'Error'
+}
+
+export { INSTRUCTION, USER_PROMPT, AppStatus }

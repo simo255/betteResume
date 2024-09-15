@@ -57,6 +57,12 @@ h1 {
     margin-bottom: 5px;
 }
 
+.button:disabled {
+    background-color: #5271ff;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .button:hover {
     background-color: #103c79;
 }

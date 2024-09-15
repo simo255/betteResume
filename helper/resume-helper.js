@@ -1,6 +1,6 @@
 function saveResumeList(url, latexCode) {
     chrome.storage.local.set({ [url]: latexCode }, () => {
-        console.log('Resume saved successfully!');
+
     });
 }
 
