@@ -3,19 +3,24 @@ import { saveResumeList } from './helper/resume-helper.js';
 import { AppStatus } from './helper/constants.js';
 
 
+chrome.tabs.onActivated.addListener(getCurrentTabInfo)
+
+async function getCurrentTabInfo() {
+    chrome.storage.local.get("currentAppStatus", async (result) => {
+        if (result.currentAppStatus !== AppStatus.API_CALL) {
+            const tabInfo = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
+            const url = tabInfo[0].url
+            saveNewAppState(url)
+        }
+    });
+
+}
+
+
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.action === "saveAppState") {
-        const url = message.url;
-
-        chrome.storage.local.get([url], (result) => {
-            if (result[url]) {
-                chrome.storage.local.set({ currentAppStatus: AppStatus.SAVED_JOB_OFFER });
-                console.log("Saved job offer detected!");
-            } else {
-                chrome.storage.local.set({ currentAppStatus: AppStatus.NEW_JOB_OFFER });
-                console.log("New job offer detected!");
-            }
-        });
+        const url = message.url ? message.url : sender.tab.url;
+        saveNewAppState(url);
     }
 });
 
@@ -40,6 +45,7 @@ async function handleTailorResume(apiKey, resume, jobOffer, selectedLLM) {
 
     if (!response.status) {
         chrome.runtime.sendMessage({ "api_error": response.message || AppStatus.ERROR });
+        chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR });
         return;
     }
 
@@ -48,10 +54,18 @@ async function handleTailorResume(apiKey, resume, jobOffer, selectedLLM) {
     const latexCode = latexMatch ? latexMatch[1].trim() : "";
 
     if (latexCode) {
-
         saveResumeList(jobOffer.url, latexCode);
         chrome.action.setBadgeText({ text: 'Rdy' });
         chrome.runtime.sendMessage({ "tailoredResume": latexCode });
         chrome.storage.local.set({ currentAppStatus: AppStatus.TAILORED_RESUME });
+    } else {
+        chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR });
     }
+}
+
+function saveNewAppState(url) {
+    chrome.storage.local.get([url], (result) => {
+        const appStatus = result[url] ? AppStatus.SAVED_JOB_OFFER : AppStatus.NEW_JOB_OFFER;
+        chrome.storage.local.set({ currentAppStatus: appStatus });
+    });
 }

@@ -22,8 +22,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.action.setBadgeText({ text: '' });
 
 
-
-
     const resume = await getUserResume();
     const apiKey = await getApiKey(document.getElementById('apiSelection').value); // Get the API key for the selected LLM
 
@@ -84,32 +82,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             saveResumeButton.classList.add("hidden");
             editResumeButton.classList.remove("hidden");
             statusMessage.innerText = "Resume saved successfully!";
-
-
         }
     });
 
-    const tailoredResume = await getResumeList(jobOffer.url);
-
-    if (tailoredResume) {
-        document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
-        document.getElementById('open-overleaf').classList.remove("hidden");
-        document.getElementById('status').innerText = "It will open the last tailored resume for this job offer";
-
-        tailorResumeButton.innerText = "Tailor Resume again";
-    } else {
-        document.getElementById('open-overleaf').classList.add("hidden");
-        tailorResumeButton.innerText = "Tailor Resume";
-
-    }
 
     tailorResumeButton.addEventListener('click', async () => {
         const apiKey = await getApiKey(document.getElementById('apiSelection').value);
         const resume = await getUserResume();
-
-        tailorResumeButton.setAttribute("disabled", "true");
-
-
 
         if (!apiKey) {
             document.getElementById('status').innerText = "Please save your API Key first!";
@@ -137,7 +116,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         chrome.runtime.sendMessage({ action: "makeAPICall", apiKey, resume, jobOffer, selectedLLM });
 
         statusMessage.innerText = "Tailoring resume...";
-
+        tailorResumeButton.setAttribute("disabled", "true");
 
     });
 
@@ -146,17 +125,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(message.tailoredResume);
             document.getElementById('open-overleaf').classList.remove("hidden");
             document.getElementById('status').innerText = "Your resume has been tailored successfully!";
-            tailorResumeButton.removeAttribute("disabled");
 
         } else if (message.api_error) {
-            document.getElementById('open-overleaf').classList.add("hidden");
-            document.getElementById('status').innerText = message.api_error;
-
+            const tailoredResume = getResumeList(jobOffer.url);
+            
             if (tailoredResume) {
                 document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
                 document.getElementById('open-overleaf').classList.remove("hidden");
-            }
+            } 
+            document.getElementById('status').innerText = message.api_error;
         }
+
 
     });
 
@@ -167,21 +146,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             case AppStatus.NEW_JOB_OFFER:
                 statusMessage.innerText = "New job offer detected!";
                 break;
-            case AppStatus.SAVED_JOB_OFFER:
-                statusMessage.innerText = "Saved job offer detected!";
+            case AppStatus.SAVED_JOB_OFFER || AppStatus.TAILORED_RESUME:
+                const tailoredResume = getResumeList(jobOffer.url);
+                document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
+                document.getElementById('open-overleaf').classList.remove("hidden");
+                tailorResumeButton.removeAttribute("disabled");
+                document.getElementById('status').innerText = "It will open the last tailored resume for this job offer";
+                tailorResumeButton.innerText = "Tailor Resume again";
                 break;
             case AppStatus.API_CALL:
                 statusMessage.innerText = "Tailoring resume ...";
-                tailorResumeButton.setAttribute("disabled", "true"); 
-                break;
-            case AppStatus.TAILORED_RESUME:
-                statusMessage.innerText = "Resume tailored successfully!";
+                tailorResumeButton.setAttribute("disabled", "true");
                 break;
             case AppStatus.ERROR:
                 statusMessage.innerText = "An error occurred!";
+                tailorResumeButton.removeAttribute("disabled");
+
                 break;
-            default:
-                statusMessage.innerText = "New job offer detected!";
         }
     });
 

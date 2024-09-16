@@ -7,7 +7,6 @@ async function saveApiKey(serviceName, apiKey) {
         const { iv, encryptedData } = await encryptData(key, apiKey);
         const storageData = { apiKeyIv: iv, apiKeyEncryptedData: encryptedData, encryptionKey: exportedKey };
 
-        // Save the key with a unique identifier (serviceName)
         chrome.storage.sync.get('apiKeys', (result) => {
             const apiKeys = result.apiKeys || {};
             apiKeys[serviceName] = storageData;
