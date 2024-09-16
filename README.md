@@ -62,6 +62,10 @@
   - Improved error handling and user notifications.
   - Generate Cover letters.
   - Better UI/UX
+ 
+## Privacy Policy : 
+
+See the [Privacy policy](https://github.com/simo255/betteResume/blob/main/privacy_policy.md) for details
 
 ## License
 
