@@ -53,14 +53,15 @@ async function handleTailorResume(apiKey, resume, jobOffer, selectedLLM) {
     const latexMatch = tailoredResume.match(/```latex([\s\S]*?)```/);
     const latexCode = latexMatch ? latexMatch[1].trim() : "";
 
-    if (latexCode) {
-        saveResumeList(jobOffer.url, latexCode);
-        chrome.action.setBadgeText({ text: 'Rdy' });
-        chrome.runtime.sendMessage({ "tailoredResume": latexCode });
-        chrome.storage.local.set({ currentAppStatus: AppStatus.TAILORED_RESUME });
-    } else {
+    if (!latexCode) {
         chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR });
+        return;
     }
+
+    saveResumeList(jobOffer.url, latexCode);
+    chrome.action.setBadgeText({ text: 'Rdy' });
+    chrome.runtime.sendMessage({ "tailoredResume": latexCode });
+    chrome.storage.local.set({ currentAppStatus: AppStatus.TAILORED_RESUME });
 }
 
 function saveNewAppState(url) {
