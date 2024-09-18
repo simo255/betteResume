@@ -25,15 +25,45 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'makeAPICall') {
-        const apiKey = request.apiKey;
-        const resume = request.resume;
-        const jobOffer = request.jobOffer;
-        const selectedLLM = request.selectedLLM;
+    const apiKey = request.apiKey;
+    const resume = request.resume;
+    const jobOffer = request.jobOffer;
+    const selectedLLM = request.selectedLLM;
 
+    if (request.action === 'tailor') {
         handleTailorResume(apiKey, resume, jobOffer, selectedLLM);
+    } else if (request.action === 'coverLetter') {
+
     }
 });
+
+async function handleTailorCoverLetter(apiKey, coverLetter, jobOffer, selectedLLM) {
+    let tailoredCoverLetter = "";
+    chrome.storage.local.set({ currentAppStatus: AppStatus.API_CALL });
+    const response = selectedLLM === "Mistral"
+        ? await sendMistralApiCall(apiKey, coverLetter, jobOffer.description)
+        : await sendGeminiApiCall(apiKey, coverLetter.text, jobOffer.description);
+
+    if (!response.status) {
+        chrome.runtime.sendMessage({ "api_error": response.message || AppStatus.ERROR });
+        chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR });
+        return;
+    }
+
+    tailoredCoverLetter = response.latexCode || "";
+    const latexMatch = tailoredCoverLetter.match(/```latex([\s\S]*?)```/);
+    const latexCode = latexMatch ? latexMatch[1].trim() : "";
+
+    if (!latexCode) {
+        chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR });
+        return;
+    }
+
+    saveResumeList(jobOffer.url, latexCode);
+    chrome.action.setBadgeText({ text: 'Rdy' });
+    chrome.runtime.sendMessage({ "tailoredResume": latexCode });
+    chrome.storage.local.set({ currentAppStatus: AppStatus.TAILORED_RESUME });
+}
 
 
 async function handleTailorResume(apiKey, resume, jobOffer, selectedLLM) {
