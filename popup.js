@@ -19,33 +19,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const tailorResumeButton = document.getElementById("tailorResume");
 
+    const settingIcon = document.getElementById("settings");
+
     chrome.action.setBadgeText({ text: '' });
 
 
     const resume = await getUserResume();
     const apiKey = await getApiKey(document.getElementById('apiSelection').value); // Get the API key for the selected LLM
 
+    const apiContainer = document.getElementById('apiKeyContainer');
+    const resumeContainer = document.getElementById('resumeContainer');
 
-    if (!apiKey && !resume) {
-        saveApiKeyButton.classList.remove("hidden");
-        saveResumeButton.classList.remove("hidden");
-        apiKeyInput.classList.remove("hidden");
-        resumeInput.classList.remove("hidden");
-    } else {
-        if (apiKey) {
-            editApiKeyButton.classList.remove("hidden");
-        } else {
-            saveApiKeyButton.classList.remove("hidden");
-            apiKeyInput.classList.remove("hidden");
-        }
 
-        if (resume) {
-            editResumeButton.classList.remove("hidden");
-        } else {
-            saveResumeButton.classList.remove("hidden");
-            resumeInput.classList.remove("hidden");
-        }
-    }
+    settingIcon.addEventListener('click', () => {
+
+        const isHidden = apiContainer.classList.contains("hidden") || resumeContainer.classList.contains("hidden");
+        toggleSettings(!isHidden, resume, apiKey);
+
+    });
 
 
     editApiKeyButton.addEventListener("click", async () => {
@@ -125,14 +116,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(message.tailoredResume);
             document.getElementById('open-overleaf').classList.remove("hidden");
             document.getElementById('status').innerText = "Your resume has been tailored successfully!";
+            tailorResumeButton.removeAttribute("disabled");
 
         } else if (message.api_error) {
             const tailoredResume = getResumeList(jobOffer.url);
-            
+
             if (tailoredResume) {
                 document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
                 document.getElementById('open-overleaf').classList.remove("hidden");
-            } 
+            }
             document.getElementById('status').innerText = message.api_error;
         }
 
@@ -168,6 +160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 });
 
+
 function getPageData() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         chrome.tabs.sendMessage(tabs[0].id, { action: "getText" }, (response) => {
@@ -182,4 +175,51 @@ function getPageData() {
         });
     });
 
+}
+
+
+function toggleSettings(hide, resume, apiKey) {
+
+    const apiKeyInput = document.getElementById("apiKey");
+    const resumeInput = document.getElementById("latexResume");
+    const apiContainer = document.getElementById('apiKeyContainer');
+    const resumeContainer = document.getElementById('resumeContainer');
+
+    const editApiKeyButton = document.getElementById("editApiKey");
+    const saveApiKeyButton = document.getElementById("saveApiKey");
+    const editResumeButton = document.getElementById("editResume");
+    const saveResumeButton = document.getElementById("saveResume");
+
+    if (!apiKey && !resume) {
+        saveApiKeyButton.classList.remove("hidden");
+        saveResumeButton.classList.remove("hidden");
+        apiKeyInput.classList.remove("hidden");
+        resumeInput.classList.remove("hidden");
+    } else {
+        if (apiKey) {
+            editApiKeyButton.classList.remove("hidden");
+            saveApiKeyButton.classList.add("hidden");
+            apiKeyInput.classList.add("hidden");
+        } else {
+            saveApiKeyButton.classList.remove("hidden");
+            apiKeyInput.classList.remove("hidden");
+        }
+
+        if (resume) {
+            editResumeButton.classList.remove("hidden");
+            saveResumeButton.classList.add("hidden");
+            resumeInput.classList.add("hidden");
+        } else {
+            saveResumeButton.classList.remove("hidden");
+            resumeInput.classList.remove("hidden");
+        }
+    }
+
+    if (hide) {
+        apiContainer.classList.add("hidden");
+        resumeContainer.classList.add("hidden");
+    } else {
+        apiContainer.classList.remove("hidden");
+        resumeContainer.classList.remove("hidden");
+    }
 }

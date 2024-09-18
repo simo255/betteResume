@@ -1,24 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport">
     <title>Tailor Resume</title>
     <link rel="stylesheet" href="popup.css">
+    <link href="font-awesome/css/all.css" rel="stylesheet">
+
+
 </head>
+
 <body>
-    <div id="resumeContainer" class="container">
+    <div id="header" class="header">
+        <h1>betteResume</h1>
+        <i id="settings" class="fas fa-cog"></i>
+    </div>
+
+    <div id="resumeContainer" class="container hidden">
         <h1>Resume</h1>
-        <label for="latexResume">Paste Resume in LaTeX format:</label>
-        <textarea id="latexResume" class="input-field hidden" placeholder="Paste your LaTeX resume here" rows="10"
+        <textarea id="latexResume" class="input-field hidden" placeholder="Paste your LaTeX resume here" rows="2"
             cols="50"></textarea>
         <button id="editResume" class="button hidden">Edit Resume</button>
         <button id="saveResume" class="button hidden">Save Resume</button>
     </div>
-    
-    <div id="apiKeyContainer" class="container">
+
+    <div id="apiKeyContainer" class="container hidden">
         <h1>API Key</h1>
-        <label for="apiKey">API Key:</label>
         <input type="password" id="apiKey" class="input-field hidden" placeholder="Enter your API Key" />
         <button id="editApiKey" class="button hidden">Edit API Key</button>
         <button id="saveApiKey" class="button hidden">Save API Key</button>
@@ -26,15 +34,14 @@
 
     <div id="apiSelectionContainer" class="container">
         <h1>Select API</h1>
-        <label for="apiSelection">Choose API:</label>
         <select id="apiSelection" class="input-field">
             <option selected value="Mistral">Mistral API</option>
-            <option  value="Gemini">Gemini API</option>
+            <option value="Gemini">Gemini API</option>
         </select>
     </div>
 
     <button id="tailorResume" class="button">Tailor Resume</button>
-    <form  action="https://www.overleaf.com/docs" method="post" target="_blank">
+    <form action="https://www.overleaf.com/docs" method="post" target="_blank">
         <input class="overleaf-form" id="latexCode" type="text" name="snip_uri"><br>
         <input id="open-overleaf" class="button hidden" type="submit" value="Open in Overleaf">
     </form>
@@ -42,4 +49,5 @@
     <div id="loadingWheel" class="loading hidden">Loading...</div>
     <script src="popup.js" type="module"></script>
 </body>
+
 </html>
