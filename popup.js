@@ -5,23 +5,24 @@ import { AppStatus } from './helper/constants.js';
 
 let jobOffer = { description: "", url: "" };
 
+const apiKeyInput = document.getElementById("apiKey");
+const resumeInput = document.getElementById("latexResume");
+
+const editApiKeyButton = document.getElementById("editApiKey");
+const saveApiKeyButton = document.getElementById("saveApiKey");
+const editResumeButton = document.getElementById("editResume");
+const saveResumeButton = document.getElementById("saveResume");
+const statusMessage = document.getElementById('status');
+
+const tailorResumeButton = document.getElementById("tailorResume");
+
+const coverLetterButton = document.getElementById("coverLetter");
+
+const settingIcon = document.getElementById("settings");
+
 document.addEventListener('DOMContentLoaded', async () => {
     getPageData();
 
-    const apiKeyInput = document.getElementById("apiKey");
-    const resumeInput = document.getElementById("latexResume");
-
-    const editApiKeyButton = document.getElementById("editApiKey");
-    const saveApiKeyButton = document.getElementById("saveApiKey");
-    const editResumeButton = document.getElementById("editResume");
-    const saveResumeButton = document.getElementById("saveResume");
-    const statusMessage = document.getElementById('status');
-
-    const tailorResumeButton = document.getElementById("tailorResume");
-
-    const coverLetterButton = document.getElementById("coverLetter");
-
-    const settingIcon = document.getElementById("settings");
 
     chrome.action.setBadgeText({ text: '' });
 
@@ -34,7 +35,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     settingIcon.addEventListener('click', () => {
-
         const isHidden = apiContainer.classList.contains("hidden") || resumeContainer.classList.contains("hidden");
         toggleSettings(!isHidden, resume, apiKey);
 
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (message.tailoredResume) {
             document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(message.tailoredResume);
             document.getElementById('open-overleaf').classList.remove("hidden");
-            document.getElementById('status').innerText = "Your resume has been tailored successfully!";
+          statusMessage.innerText = "Your resume has been tailored successfully!";
             tailorResumeButton.removeAttribute("disabled");
 
         } else if (message.api_error) {
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
                 document.getElementById('open-overleaf').classList.remove("hidden");
             }
-            document.getElementById('status').innerText = message.api_error;
+          statusMessage.innerText = message.api_error;
         }
 
 
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
                 document.getElementById('open-overleaf').classList.remove("hidden");
                 tailorResumeButton.removeAttribute("disabled");
-                document.getElementById('status').innerText = "It will open the last tailored resume for this job offer";
+              statusMessage.innerText = "It will open the last tailored resume for this job offer";
                 tailorResumeButton.innerText = "Tailor Resume again";
                 break;
             case AppStatus.API_CALL:
@@ -148,7 +148,7 @@ function getPageData() {
                 jobOffer.description = response.text;
                 jobOffer.url = response.url;
             } else {
-                document.getElementById('status').innerText = "An error occurred, please refresh the page and try again.";
+              statusMessage.innerText = "An error occurred, please refresh the page and try again.";
             }
 
         });
@@ -157,39 +157,38 @@ function getPageData() {
 }
 
 async function sendLLMRequest(requestType) {
-
     const apiKey = await getApiKey(document.getElementById('apiSelection').value);
     const resume = await getUserResume();
 
     if (!apiKey) {
-        document.getElementById('status').innerText = "Please save your API Key first!";
+      statusMessage.innerText = "Please save your API Key first!";
         return;
     }
 
     if (!resume) {
-        document.getElementById('status').innerText = "Please save your resume before!";
+      statusMessage.innerText = "Please save your resume before!";
         return;
     }
 
     if (!jobOffer) {
-        document.getElementById('status').innerText = "Failed to extract job description!";
+      statusMessage.innerText = "Failed to extract job description!";
         return;
     }
 
-    const selectedLLM = document.getElementById('apiSelection').value;
 
     if (requestType === "tailor") {
         document.getElementById('open-overleaf').classList.add("hidden");
+
         saveResumeList(jobOffer.url, "");
         statusMessage.innerText = "Tailoring resume...";
         document.getElementById("tailorResume").setAttribute("disabled", "true");
 
     } else if (requestType === "coverLetter") {
-        document.getElementById('status').innerText = "Generating cover letter...";
+      statusMessage.innerText = "Generating cover letter...";
         document.getElementById("coverLetter").setAttribute("disabled", "true");
     }
 
-    chrome.runtime.sendMessage({ action: requestType, apiKey, resume, jobOffer, selectedLLM });
+    chrome.runtime.sendMessage({ action: requestType, selectedLLM: document.getElementById('apiSelection').value, jobOffer: jobOffer.description });
 }
 
 

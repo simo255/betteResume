@@ -25,24 +25,19 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    const apiKey = request.apiKey;
-    const resume = request.resume;
-    const jobOffer = request.jobOffer;
-    const selectedLLM = request.selectedLLM;
-
-    if (request.action === 'tailor') {
-        handleTailorResume(apiKey, resume, jobOffer, selectedLLM);
-    } else if (request.action === 'coverLetter') {
-
-    }
+    if (request.action === "tailor") {
+        const jobOffer = request.jobOffer;
+        const selectedLLM = request.selectedLLM;
+        handleTailorResume(jobOffer, selectedLLM);
+    } 
 });
 
-async function handleTailorCoverLetter(apiKey, coverLetter, jobOffer, selectedLLM) {
+async function handleCoverLetter(jobOffer) {
     let tailoredCoverLetter = "";
     chrome.storage.local.set({ currentAppStatus: AppStatus.API_CALL });
     const response = selectedLLM === "Mistral"
-        ? await sendMistralApiCall(apiKey, coverLetter, jobOffer.description)
-        : await sendGeminiApiCall(apiKey, coverLetter.text, jobOffer.description);
+        ? await sendMistralApiCall(jobOffer.description)
+        : await sendGeminiApiCall(jobOffer.description);
 
     if (!response.status) {
         chrome.runtime.sendMessage({ "api_error": response.message || AppStatus.ERROR });
@@ -66,12 +61,13 @@ async function handleTailorCoverLetter(apiKey, coverLetter, jobOffer, selectedLL
 }
 
 
-async function handleTailorResume(apiKey, resume, jobOffer, selectedLLM) {
+async function handleTailorResume(jobOffer, selectedLLM) {
     let tailoredResume = "";
+    
     chrome.storage.local.set({ currentAppStatus: AppStatus.API_CALL });
     const response = selectedLLM === "Mistral"
-        ? await sendMistralApiCall(apiKey, resume, jobOffer.description)
-        : await sendGeminiApiCall(apiKey, resume.text, jobOffer.description);
+        ? await sendMistralApiCall(jobOffer)
+        : await sendGeminiApiCall(jobOffer);
 
     if (!response.status) {
         chrome.runtime.sendMessage({ "api_error": response.message || AppStatus.ERROR });

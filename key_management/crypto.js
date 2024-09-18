@@ -1,5 +1,6 @@
+
 async function generateKey() {
-    return await window.crypto.subtle.generateKey(
+    return await crypto.subtle.generateKey(
         {
             name: "AES-GCM",
             length: 256,
@@ -10,7 +11,7 @@ async function generateKey() {
 }
 
 async function exportKey(key) {
-    const exported = await window.crypto.subtle.exportKey('jwk', key);
+    const exported = await crypto.subtle.exportKey('jwk', key);
     return {
         ...exported,
         kty: 'oct', 
@@ -18,7 +19,7 @@ async function exportKey(key) {
 }
 
 async function importKey(jwk) {
-    return await window.crypto.subtle.importKey(
+    return await crypto.subtle.importKey(
         'jwk',
         jwk,
         {
@@ -32,11 +33,11 @@ async function importKey(jwk) {
 
 async function encryptData(key, data) {
     const encoder = new TextEncoder();
-    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
     const encodedData = encoder.encode(data);
 
     try {
-        const encryptedData = await window.crypto.subtle.encrypt(
+        const encryptedData = await crypto.subtle.encrypt(
             {
                 name: "AES-GCM",
                 iv: iv,
@@ -61,7 +62,7 @@ async function decryptData(key, iv, encryptedData) {
     const encryptedArray = new Uint8Array(encryptedData);
 
     try {
-        const decryptedData = await window.crypto.subtle.decrypt(
+        const decryptedData = await crypto.subtle.decrypt(
             {
                 name: "AES-GCM",
                 iv: ivArray,

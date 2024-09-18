@@ -1,7 +1,12 @@
 
 import { INSTRUCTION, USER_PROMPT } from "./constants.js";
+import { getApiKey } from "../key_management/api_key_management.js";
+import { getUserResume } from "./resume-helper.js";
 
-async function sendMistralApiCall(apiKey, resumeText, jobDescription) {
+async function sendMistralApiCall(jobDescription) {
+    const apiKey = await getApiKey("Mistral");
+    const resume = await getUserResume();
+    console.log("aloalolo");
 
     const apiUrl = "https://api.mistral.ai/v1/chat/completions";
     const model = "open-mistral-nemo-2407";
@@ -26,7 +31,7 @@ async function sendMistralApiCall(apiKey, resumeText, jobDescription) {
                 },
                 {
                     role: "user",
-                    content: `This is my resume : ${resumeText}`
+                    content: `This is my resume : ${resume}`
                 },
                 {
                     role: "user",
@@ -61,14 +66,17 @@ async function sendMistralApiCall(apiKey, resumeText, jobDescription) {
 
 
 
-async function sendGeminiApiCall(apiKey, resumeText, jobDescription) {
+async function sendGeminiApiCall(jobDescription) {
+    const apiKey = await getApiKey("Gemini");
+    const resume = await getUserResume();
+
     const data = {
         system_instruction: {
             parts: [{ "text": INSTRUCTION },
             { "text": `This is the job description : ${jobDescription}, You have to generate a resume for this job application.` }]
         },
         contents: [{
-            parts: [{ "text": `This is my resume : ${resumeText}` }, { "text": USER_PROMPT }]
+            parts: [{ "text": `This is my resume : ${resume}` }, { "text": USER_PROMPT }]
         }],
      
         "generationConfig": {
