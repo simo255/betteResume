@@ -1,77 +1,63 @@
-import { sendGeminiApiCall, sendMistralApiCall } from './helper/api.js';
-import { saveResumeList } from './helper/resume-helper.js';
+import { sendGeminiApiCall, sendMistralApiCall, generateCoverLetterMistral } from './helper/api.js';
+import { saveData } from './helper/resume-helper.js';
 import { AppStatus } from './helper/constants.js';
 
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.html) {
 
-chrome.tabs.onActivated.addListener(getCurrentTabInfo)
-
-async function getCurrentTabInfo() {
-    chrome.storage.local.get("currentAppStatus", async (result) => {
-        if (result.currentAppStatus !== AppStatus.API_CALL) {
-            const tabInfo = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
-            const url = tabInfo[0].url
-            saveNewAppState(url)
-        }
-    });
-
-}
-
-
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    if (message.action === "saveAppState") {
-        const url = message.url ? message.url : sender.tab.url;
-        saveNewAppState(url);
     }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "tailor") {
-        const jobOffer = request.jobOffer;
-        const selectedLLM = request.selectedLLM;
-        handleTailorResume(jobOffer, selectedLLM);
+        handleTailorResume(request.jobOffer, request.selectedLLM);
+    } 
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "coverLetter") {
+        handleCoverLetter(request.jobOffer, request.selectedLLM);
     } 
 });
 
 async function handleCoverLetter(jobOffer) {
-    let tailoredCoverLetter = "";
-    chrome.storage.local.set({ currentAppStatus: AppStatus.API_CALL });
+
+    chrome.storage.local.set({ currentAppStatus: AppStatus.COVER_LETTER_API_CALL });
     const response = selectedLLM === "Mistral"
-        ? await sendMistralApiCall(jobOffer.description)
-        : await sendGeminiApiCall(jobOffer.description);
+        ? await generateCoverLetterMistral(jobOffer.description)
+        : console.log("Gemini API not implemented yet");
 
     if (!response.status) {
-        chrome.runtime.sendMessage({ "api_error": response.message || AppStatus.ERROR });
-        chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR });
+        chrome.runtime.sendMessage({ "api_error": response.message || AppStatus.ERROR_COVER_LETTER });
+        chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR_COVER_LETTER });
         return;
     }
 
-    tailoredCoverLetter = response.latexCode || "";
-    const latexMatch = tailoredCoverLetter.match(/```latex([\s\S]*?)```/);
-    const latexCode = latexMatch ? latexMatch[1].trim() : "";
+    const coverLetter = response.coverLetter || "";
 
-    if (!latexCode) {
-        chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR });
+    if (!coverLetter) {
+        chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR_COVER_LETTER });
         return;
     }
 
-    saveResumeList(jobOffer.url, latexCode);
+    saveUserResume("", coverLetter);
     chrome.action.setBadgeText({ text: 'Rdy' });
-    chrome.runtime.sendMessage({ "tailoredResume": latexCode });
-    chrome.storage.local.set({ currentAppStatus: AppStatus.TAILORED_RESUME });
+    chrome.runtime.sendMessage({ "coverLetterDone": coverLetter });
+    chrome.storage.local.set({ currentAppStatus: AppStatus.TAILORED_COVER_LETTER });
 }
 
 
 async function handleTailorResume(jobOffer, selectedLLM) {
     let tailoredResume = "";
-    
-    chrome.storage.local.set({ currentAppStatus: AppStatus.API_CALL });
+
+    chrome.storage.local.set({ currentAppStatus: AppStatus.RESUME_API_CALL });
     const response = selectedLLM === "Mistral"
         ? await sendMistralApiCall(jobOffer)
         : await sendGeminiApiCall(jobOffer);
 
     if (!response.status) {
-        chrome.runtime.sendMessage({ "api_error": response.message || AppStatus.ERROR });
-        chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR });
+        chrome.runtime.sendMessage({ "api_error": response.message || AppStatus.ERROR_RESUME });
+        chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR_RESUME });
         return;
     }
 
@@ -80,19 +66,13 @@ async function handleTailorResume(jobOffer, selectedLLM) {
     const latexCode = latexMatch ? latexMatch[1].trim() : "";
 
     if (!latexCode) {
-        chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR });
+        chrome.storage.local.set({ currentAppStatus: AppStatus.ERROR_RESUME });
         return;
     }
 
-    saveResumeList(jobOffer.url, latexCode);
+    saveData(latexCode, "");
     chrome.action.setBadgeText({ text: 'Rdy' });
     chrome.runtime.sendMessage({ "tailoredResume": latexCode });
     chrome.storage.local.set({ currentAppStatus: AppStatus.TAILORED_RESUME });
 }
 
-function saveNewAppState(url) {
-    chrome.storage.local.get([url], (result) => {
-        const appStatus = result[url] ? AppStatus.SAVED_JOB_OFFER : AppStatus.NEW_JOB_OFFER;
-        chrome.storage.local.set({ currentAppStatus: appStatus });
-    });
-}

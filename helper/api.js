@@ -1,13 +1,13 @@
 
-import { INSTRUCTION, USER_PROMPT } from "./constants.js";
+import { INSTRUCTION_RESUME, INSTRUCTION_COVER_LETTER, USER_PROMPT } from "./constants.js";
 import { getApiKey } from "../key_management/api_key_management.js";
 import { getUserResume } from "./resume-helper.js";
 
 async function sendMistralApiCall(jobDescription) {
     const apiKey = await getApiKey("Mistral");
     const resume = await getUserResume();
-    console.log("aloalolo");
 
+    
     const apiUrl = "https://api.mistral.ai/v1/chat/completions";
     const model = "open-mistral-nemo-2407";
     const prefix = "```latex";
@@ -23,7 +23,7 @@ async function sendMistralApiCall(jobDescription) {
             messages: [
                 {
                     role: "system",
-                    content: INSTRUCTION
+                    content: INSTRUCTION_RESUME
                 },
                 {
                     role: "system",
@@ -57,6 +57,61 @@ async function sendMistralApiCall(jobDescription) {
         const latexCode = data.choices[0].message.content;
 
         return { "status": true, "latexCode": latexCode };
+
+    } else {
+        return { "status": false, "message": "No response from Mistral API" };
+    }
+
+}
+
+
+async function generateCoverLetterMistral(jobDescription) {
+    const apiKey = await getApiKey("Mistral");
+    const resume = await getUserResume();
+
+    
+    const apiUrl = "https://api.mistral.ai/v1/chat/completions";
+    const model = "open-mistral-nemo-2407";
+    const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+            model: model,
+            temperature: 0.7,
+            messages: [
+                {
+                    role: "system",
+                    content: INSTRUCTION_COVER_LETTER
+                },
+                {
+                    role: "system",
+                    content: `This is the job description : ${jobDescription}, You have to generate a cover letter for this job application.`
+                },
+                {
+                    role: "user",
+                    content: `This is my resume : ${resume}`
+                },
+                {
+                    role: "user",
+                    content: USER_PROMPT
+                }
+            ]
+        })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        return { "status": false, "message": errorText };
+    }
+
+    const data = await response.json();
+    if (data.choices && data.choices.length > 0) {
+        const coverLetter = data.choices[0].message.content;
+
+        return { "status": true, coverLetter };
 
     } else {
         return { "status": false, "message": "No response from Mistral API" };
@@ -104,4 +159,4 @@ async function sendGeminiApiCall(jobDescription) {
 }
 
 
-export { sendMistralApiCall, sendGeminiApiCall };
+export { sendMistralApiCall, sendGeminiApiCall, generateCoverLetterMistral };

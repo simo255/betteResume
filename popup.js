@@ -1,9 +1,9 @@
 import { getApiKey, saveApiKey } from './key_management/api_key_management.js';
-import { getResumeList, saveResumeList, getUserResume, saveUserResume } from './helper/resume-helper.js';
+import { getUserResume, saveUserResume, getData } from './helper/resume-helper.js';
 import { AppStatus } from './helper/constants.js';
 
 
-let jobOffer = { description: "", url: "" };
+let jobDescription = "";
 
 const apiKeyInput = document.getElementById("apiKey");
 const resumeInput = document.getElementById("latexResume");
@@ -23,9 +23,7 @@ const settingIcon = document.getElementById("settings");
 document.addEventListener('DOMContentLoaded', async () => {
     getPageData();
 
-
     chrome.action.setBadgeText({ text: '' });
-
 
     const resume = await getUserResume();
     const apiKey = await getApiKey(document.getElementById('apiSelection').value); // Get the API key for the selected LLM
@@ -37,7 +35,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     settingIcon.addEventListener('click', () => {
         const isHidden = apiContainer.classList.contains("hidden") || resumeContainer.classList.contains("hidden");
         toggleSettings(!isHidden, resume, apiKey);
-
     });
 
 
@@ -94,61 +91,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (message.tailoredResume) {
             document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(message.tailoredResume);
             document.getElementById('open-overleaf').classList.remove("hidden");
-          statusMessage.innerText = "Your resume has been tailored successfully!";
             tailorResumeButton.removeAttribute("disabled");
 
         } else if (message.api_error) {
-            const tailoredResume = getResumeList(jobOffer.url);
-
+            const tailoredResume = getData().resume;
             if (tailoredResume) {
                 document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
                 document.getElementById('open-overleaf').classList.remove("hidden");
             }
-          statusMessage.innerText = message.api_error;
+            statusMessage.innerText = message.api_error;
         }
 
 
     });
 
-
     chrome.storage.local.get(['currentAppStatus'], (result) => {
-        console.log("Current app status: ", result.currentAppStatus);
+
         switch (result.currentAppStatus) {
-            case AppStatus.NEW_JOB_OFFER:
-                statusMessage.innerText = "New job offer detected!";
-                break;
-            case AppStatus.SAVED_JOB_OFFER || AppStatus.TAILORED_RESUME:
-                const tailoredResume = getResumeList(jobOffer.url);
+            case AppStatus.TAILORED_RESUME:
+                const tailoredResume = getData().resume;
                 document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
                 document.getElementById('open-overleaf').classList.remove("hidden");
                 tailorResumeButton.removeAttribute("disabled");
-              statusMessage.innerText = "It will open the last tailored resume for this job offer";
-                tailorResumeButton.innerText = "Tailor Resume again";
+                coverLetterButton.removeAttribute("disabled");
                 break;
-            case AppStatus.API_CALL:
-                statusMessage.innerText = "Tailoring resume ...";
+            case AppStatus.RESUME_API_CALL || AppStatus.COVER_LETTER_API_CALL:
                 tailorResumeButton.setAttribute("disabled", "true");
+                coverLetterButton.setAttribute("disabled", "true");
                 break;
-            case AppStatus.ERROR:
-                statusMessage.innerText = "An error occurred!";
+            case AppStatus.ERROR_RESUME || AppStatus.ERROR_COVER_LETTER:
                 tailorResumeButton.removeAttribute("disabled");
-
+            case AppStatus.TAILORED_COVER_LETTER:
+                coverLetterButton.removeAttribute("disabled");
                 break;
+
         }
     });
-
 });
 
 
 function getPageData() {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, { action: "getText" }, (response) => {
 
-            if (response && response.text && response.url) {
-                jobOffer.description = response.text;
-                jobOffer.url = response.url;
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs.length === 0) {
+            console.error("No active tabs found");
+            return;
+        }
+        chrome.tabs.sendMessage(tabs[0].id, { action: "getText" }, (response) => {
+            if (response && response.text) {
+                console.log("Page Text:", response.text);
+                jobDescription = response.text;
             } else {
-              statusMessage.innerText = "An error occurred, please refresh the page and try again.";
+                console.error("No response from content script");
             }
 
         });
@@ -161,35 +155,52 @@ async function sendLLMRequest(requestType) {
     const resume = await getUserResume();
 
     if (!apiKey) {
-      statusMessage.innerText = "Please save your API Key first!";
+        statusMessage.innerText = "Please save your API Key first!";
         return;
     }
 
     if (!resume) {
-      statusMessage.innerText = "Please save your resume before!";
+        statusMessage.innerText = "Please save your resume before!";
         return;
     }
 
-    if (!jobOffer) {
-      statusMessage.innerText = "Failed to extract job description!";
+    if (!jobDescription) {
+        statusMessage.innerText = "Failed to extract job description!";
         return;
     }
 
-
-    if (requestType === "tailor") {
-        document.getElementById('open-overleaf').classList.add("hidden");
-
-        saveResumeList(jobOffer.url, "");
-        statusMessage.innerText = "Tailoring resume...";
-        document.getElementById("tailorResume").setAttribute("disabled", "true");
-
-    } else if (requestType === "coverLetter") {
-      statusMessage.innerText = "Generating cover letter...";
-        document.getElementById("coverLetter").setAttribute("disabled", "true");
-    }
-
-    chrome.runtime.sendMessage({ action: requestType, selectedLLM: document.getElementById('apiSelection').value, jobOffer: jobOffer.description });
+    chrome.runtime.sendMessage({ action: requestType, selectedLLM: document.getElementById('apiSelection').value, jobOffer: jobDescription });
 }
+
+
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+        if (key === 'currentAppStatus') {
+            statusMessage.innerText = newValue;
+            switch (newValue) {
+                case AppStatus.TAILORED_RESUME:
+                    const tailoredResume = getData().resume;
+                    document.getElementById('latexCode').value = "data:application/x-tex;base64," + btoa(tailoredResume);
+                    document.getElementById('open-overleaf').classList.remove("hidden");
+                    tailorResumeButton.removeAttribute("disabled");
+                    coverLetterButton.removeAttribute("disabled");
+                    break;
+                case AppStatus.RESUME_API_CALL || AppStatus.COVER_LETTER_API_CALL:
+                    tailorResumeButton.setAttribute("disabled", "true");
+                    coverLetterButton.setAttribute("disabled", "true");
+                    break;
+                case AppStatus.ERROR_RESUME || AppStatus.ERROR_COVER_LETTER:
+                    tailorResumeButton.removeAttribute("disabled");
+                    coverLetterButton.removeAttribute("disabled");
+                case AppStatus.TAILORED_COVER_LETTER:
+                    coverLetterButton.removeAttribute("disabled");
+                    tailorResumeButton.removeAttribute("disabled");
+                    break;
+            }
+
+        }
+    }
+});
 
 
 

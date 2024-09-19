@@ -1,25 +1,8 @@
-function saveResumeList(url, latexCode) {
-    chrome.storage.local.set({ [url]: latexCode }, () => {
 
-    });
-}
-
-function getResumeList(url) {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.get([url], (result) => {
-            if (chrome.runtime.lastError) {
-                reject(new Error(chrome.runtime.lastError));
-            } else {
-                resolve(result[url] || null);
-            }
-        });
-    });
-}
-
-async function saveUserResume(resumeText) {
-    if (resumeText) {
+async function saveUserResume(resume) {
+    if (resume) {
         return new Promise((resolve) => {
-            chrome.storage.local.set({ resume: resumeText }, () => {
+            chrome.storage.local.set({ resume: resume }, () => {
                 resolve();
             });
         });
@@ -34,5 +17,31 @@ async function getUserResume() {
     });
 }
 
+async function saveData(resume, coverLetter) {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(['userData'], (data) => {
+            const currentResume = data.userData || {};
+            
+            const updatedResume = {
+                resume: resume || currentResume.resume,
+                coverLetter: coverLetter || currentResume.coverLetter
+            };
 
-export { saveResumeList, getResumeList, saveUserResume, getUserResume };
+            chrome.storage.local.set({ userData: updatedResume }, () => {
+                resolve();
+            });
+        });
+    });
+}
+
+
+async function getData() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(['userData'], (result) => {
+            resolve(result.userData);
+        });
+    });
+}
+
+
+export {saveData, getData, saveUserResume, getUserResume};
